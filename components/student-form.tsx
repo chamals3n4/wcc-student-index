@@ -92,7 +92,8 @@ export function StudentForm({
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  const handleGradeChange = (value: string) => {
+  const handleGradeChange = (value: string | null) => {
+    if (value === null) return
     setForm((prev) => ({ ...prev, currentGrade: value }))
   }
 

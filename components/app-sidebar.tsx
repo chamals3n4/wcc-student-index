@@ -49,8 +49,8 @@ export function AppSidebar() {
       <SidebarHeader className="pb-0">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href="/">
+            <SidebarMenuButton size="lg" render={<Link href="/" />}>
+              <>
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-heading text-sm font-semibold">
                     Student INDEX
@@ -59,7 +59,7 @@ export function AppSidebar() {
                     Wellawa Central College
                   </span>
                 </div>
-              </Link>
+              </>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -72,7 +72,7 @@ export function AppSidebar() {
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
-                  asChild
+                  render={<Link href={item.href} />}
                   size="default"
                   isActive={
                     item.href === "/"
@@ -81,14 +81,14 @@ export function AppSidebar() {
                   }
                   tooltip={item.title}
                 >
-                  <Link href={item.href}>
+                  <>
                     <HugeiconsIcon
                       icon={item.icon}
                       strokeWidth={2}
                       className="size-5"
                     />
                     <span className="text-sm">{item.title}</span>
-                  </Link>
+                  </>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}

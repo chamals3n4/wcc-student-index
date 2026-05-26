@@ -276,6 +276,7 @@ export function StudentFormPage({
                 <Select
                   value={form.currentGrade}
                   onValueChange={(value) => {
+                    if (value === null) return
                     setForm((prev) => ({ ...prev, currentGrade: value }))
                     if (errors.currentGrade) {
                       setErrors((prev) => {

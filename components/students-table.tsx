@@ -175,7 +175,12 @@ export function StudentsTable({
           />
         </div>
 
-        <Select value={gradeFilter} onValueChange={setGradeFilter}>
+        <Select
+          value={gradeFilter}
+          onValueChange={(value) => {
+            if (value !== null) setGradeFilter(value)
+          }}
+        >
           <SelectTrigger className="h-10 w-40 text-sm">
             <HugeiconsIcon
               icon={FilterIcon}
@@ -350,6 +355,7 @@ export function StudentsTable({
             <Select
               value={String(pageSize)}
               onValueChange={(v) => {
+                if (v === null) return
                 setPageSize(Number(v))
                 setPage(1)
               }}

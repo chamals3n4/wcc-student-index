@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { Geist, Geist_Mono, Roboto, Merriweather } from "next/font/google"
 
 import "./globals.css"
