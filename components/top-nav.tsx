@@ -42,7 +42,7 @@ export function TopNav() {
       <div className="flex h-14 items-center gap-4 px-4 lg:px-6">
         <Link href="/" className="flex shrink-0 flex-col leading-tight">
           <span className="font-heading text-base font-semibold">
-            Student Index Platform
+            Student Information Platform
           </span>
           <span className="text-xs text-muted-foreground">
             Wellawa Central College

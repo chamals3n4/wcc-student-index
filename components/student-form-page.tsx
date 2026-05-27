@@ -52,8 +52,9 @@ const INITIAL_FORM: StudentFormData = {
   birthDay: "",
   currentGrade: "",
   specialRemarks: "",
-  parentContact: "",
-  guardianContact: "",
+  contactNo: "",
+  guardianName: "",
+  siblingsAtSchool: "",
 }
 
 export function StudentFormPage({
@@ -79,8 +80,9 @@ export function StudentFormPage({
         birthDay: student.birthDay,
         currentGrade: student.currentGrade,
         specialRemarks: student.specialRemarks ?? "",
-        parentContact: student.parentContact,
-        guardianContact: student.guardianContact ?? "",
+        contactNo: student.contactNo,
+        guardianName: student.guardianName ?? "",
+        siblingsAtSchool: student.siblingsAtSchool ?? "",
         imageUrl: student.imageUrl ?? undefined,
       })
       if (student.imageUrl) {
@@ -147,8 +149,8 @@ export function StudentFormPage({
     if (!form.address.trim()) errs.address = "Address is required"
     if (!form.birthDay) errs.birthDay = "Date of birth is required"
     if (!form.currentGrade) errs.currentGrade = "Grade is required"
-    if (!form.parentContact.trim())
-      errs.parentContact = "Parent contact is required"
+    if (!form.contactNo.trim())
+      errs.contactNo = "Contact number is required"
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -323,41 +325,54 @@ export function StudentFormPage({
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="parentContact" className="text-sm">
-                  Parent Contact <span className="text-destructive">*</span>
+                <Label htmlFor="contactNo" className="text-sm">
+                  Contact No <span className="text-destructive">*</span>
                 </Label>
                 <Input
-                  id="parentContact"
-                  name="parentContact"
-                  value={form.parentContact}
+                  id="contactNo"
+                  name="contactNo"
+                  value={form.contactNo}
                   onChange={handleChange}
                   placeholder="e.g. 0771234567"
                   className="h-10"
                 />
-                {errors.parentContact && (
+                {errors.contactNo && (
                   <p className="text-xs text-destructive">
-                    {errors.parentContact}
+                    {errors.contactNo}
                   </p>
                 )}
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="guardianContact" className="text-sm">
-                  Guardian Contact
+                <Label htmlFor="guardianName" className="text-sm">
+                  Guardian's Name
                 </Label>
                 <Input
-                  id="guardianContact"
-                  name="guardianContact"
-                  value={form.guardianContact ?? ""}
+                  id="guardianName"
+                  name="guardianName"
+                  value={form.guardianName ?? ""}
                   onChange={handleChange}
-                  placeholder="e.g. 0777654321"
+                  placeholder="e.g. Jane Doe"
                   className="h-10"
                 />
               </div>
             </div>
 
-            {/* Address + Remarks side by side */}
+            {/* Contact + Siblings */}
             <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="siblingsAtSchool" className="text-sm">
+                  Names of Siblings at School
+                </Label>
+                <Textarea
+                  id="siblingsAtSchool"
+                  name="siblingsAtSchool"
+                  value={form.siblingsAtSchool ?? ""}
+                  onChange={handleChange}
+                  placeholder="Names of siblings attending the same school..."
+                  rows={3}
+                />
+              </div>
               <div className="space-y-1.5">
                 <Label htmlFor="address" className="text-sm">
                   Address <span className="text-destructive">*</span>

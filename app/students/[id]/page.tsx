@@ -181,15 +181,14 @@ export default function StudentDetailPage() {
                 },
                 {
                   icon: Call02Icon,
-                  label: "Parent Contact",
-                  value: student.parentContact,
+                  label: "Contact No",
+                  value: student.contactNo,
                   mono: true,
                 },
                 {
                   icon: Call02Icon,
-                  label: "Guardian Contact",
-                  value: student.guardianContact || "—",
-                  mono: true,
+                  label: "Guardian's Name",
+                  value: student.guardianName || "—",
                 },
               ].map(({ icon, label, value, mono, badge: isBadge }) => (
                 <div key={label} className="flex items-start gap-3">
@@ -241,6 +240,25 @@ export default function StudentDetailPage() {
                       Special Remarks
                     </p>
                     <p className="text-sm">{student.specialRemarks}</p>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {student.siblingsAtSchool && (
+              <>
+                <Separator />
+                <div className="flex items-start gap-3">
+                  <HugeiconsIcon
+                    icon={UserIcon}
+                    strokeWidth={2}
+                    className="mt-0.5 size-4 text-muted-foreground"
+                  />
+                  <div>
+                    <p className="text-xs text-muted-foreground">
+                      Names of Siblings at School
+                    </p>
+                    <p className="text-sm">{student.siblingsAtSchool}</p>
                   </div>
                 </div>
               </>

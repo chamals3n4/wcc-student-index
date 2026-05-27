@@ -55,8 +55,9 @@ const INITIAL_FORM: StudentFormData = {
   birthDay: "",
   currentGrade: "",
   specialRemarks: "",
-  parentContact: "",
-  guardianContact: "",
+  contactNo: "",
+  guardianName: "",
+  siblingsAtSchool: "",
 }
 
 export function StudentForm({
@@ -78,8 +79,9 @@ export function StudentForm({
         birthDay: student.birthDay,
         currentGrade: student.currentGrade,
         specialRemarks: student.specialRemarks ?? "",
-        parentContact: student.parentContact,
-        guardianContact: student.guardianContact ?? "",
+        contactNo: student.contactNo,
+        guardianName: student.guardianName ?? "",
+        siblingsAtSchool: student.siblingsAtSchool ?? "",
       })
     } else {
       setForm(INITIAL_FORM)
@@ -182,11 +184,11 @@ export function StudentForm({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="parentContact">Parent Contact *</Label>
+              <Label htmlFor="contactNo">Contact No *</Label>
               <Input
-                id="parentContact"
-                name="parentContact"
-                value={form.parentContact}
+                id="contactNo"
+                name="contactNo"
+                value={form.contactNo}
                 onChange={handleChange}
                 placeholder="e.g. 0771234567"
                 required
@@ -194,13 +196,25 @@ export function StudentForm({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="guardianContact">Guardian Contact</Label>
+              <Label htmlFor="guardianName">Guardian's Name</Label>
               <Input
-                id="guardianContact"
-                name="guardianContact"
-                value={form.guardianContact ?? ""}
+                id="guardianName"
+                name="guardianName"
+                value={form.guardianName ?? ""}
                 onChange={handleChange}
-                placeholder="e.g. 0777654321"
+                placeholder="e.g. Jane Doe"
+              />
+            </div>
+
+            <div className="col-span-2 space-y-2">
+              <Label htmlFor="siblingsAtSchool">Names of Siblings at School</Label>
+              <Textarea
+                id="siblingsAtSchool"
+                name="siblingsAtSchool"
+                value={form.siblingsAtSchool ?? ""}
+                onChange={handleChange}
+                placeholder="Names of siblings attending the same school..."
+                rows={2}
               />
             </div>
 

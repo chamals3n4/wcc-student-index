@@ -15,7 +15,9 @@ export const studentSchema = z.object({
 
   specialRemarks: z.string().optional(),
 
-  parentContact: z.string(),
+  contactNo: z.string(),
 
-  guardianContact: z.string().optional(),
+  guardianName: z.string().optional(),
+
+  siblingsAtSchool: z.string().optional(),
 })

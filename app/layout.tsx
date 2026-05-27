@@ -25,6 +25,10 @@ const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 })
+export const metadata = {
+  title: "WCC Student Information",
+  description: "Student management system",
+}
 
 export default function RootLayout({
   children,

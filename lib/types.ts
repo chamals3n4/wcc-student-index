@@ -7,8 +7,9 @@ export interface Student {
   birthDay: string
   currentGrade: string
   specialRemarks: string | null
-  parentContact: string
-  guardianContact: string | null
+  contactNo: string
+  guardianName: string | null
+  siblingsAtSchool: string | null
   createdAt: string
 }
 

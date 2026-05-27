@@ -287,13 +287,7 @@ export function StudentsTable({
                     </Badge>
                   </TableCell>
                   <TableCell className="font-mono text-sm">
-                    {student.parentContact}
-                    {student.guardianContact && (
-                      <span className="text-muted-foreground">
-                        {" "}
-                        / {student.guardianContact}
-                      </span>
-                    )}
+                    {student.contactNo}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1.5">

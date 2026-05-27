@@ -32,13 +32,15 @@ export const students = pgTable("students", {
 
   specialRemarks: text("special_remarks"),
 
-  parentContact: varchar("parent_contact", {
+  contactNo: varchar("contact_no", {
     length: 20,
   }).notNull(),
 
-  guardianContact: varchar("guardian_contact", {
-    length: 20,
+  guardianName: varchar("guardian_name", {
+    length: 255,
   }),
+
+  siblingsAtSchool: text("siblings_at_school"),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 })
