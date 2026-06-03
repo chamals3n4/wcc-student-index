@@ -14,47 +14,51 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import type { Student, StudentFormData } from "@/lib/types"
+import type { StudentFormData, Class } from "@/lib/types"
+import { useClassesQuery } from "@/hooks/use-students"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   Loading03Icon,
   SaveIcon,
   ImageUploadIcon,
+  Cancel01Icon,
 } from "@hugeicons/core-free-icons"
 
-interface StudentFormPageProps {
-  student?: Student | null
-  onSubmit: (data: StudentFormData) => Promise<boolean>
-  title: string
-  description: string
+interface StudentWithClass {
+  name: string
+  imageUrl?: string | null
+  indexNumber: string
+  address: string
+  birthDay: string
+  specialRemarks?: string | null
+  contactNo: string
+  guardianName?: string | null
+  siblingsAtSchool?: string | null
+  classId: string
 }
 
-const GRADE_OPTIONS = [
-  "Grade 1",
-  "Grade 2",
-  "Grade 3",
-  "Grade 4",
-  "Grade 5",
-  "Grade 6",
-  "Grade 7",
-  "Grade 8",
-  "Grade 9",
-  "Grade 10",
-  "Grade 11",
-  "Grade 12",
-  "Grade 13",
-] as const
+interface StudentFormPageProps {
+  student?: StudentWithClass | null
+  onSubmit: (data: StudentFormData) => Promise<boolean>
+  title: string
+  description?: string
+}
 
 const INITIAL_FORM: StudentFormData = {
   name: "",
   indexNumber: "",
   address: "",
   birthDay: "",
-  currentGrade: "",
+  classId: "",
   specialRemarks: "",
   contactNo: "",
   guardianName: "",
   siblingsAtSchool: "",
+}
+
+function classLabel(c: Class): string {
+  const base = `Grade ${c.grade} - ${c.section}`
+  return c.stream ? `${base} (${c.stream})` : base
 }
 
 export function StudentFormPage({
@@ -63,6 +67,9 @@ export function StudentFormPage({
   title,
 }: StudentFormPageProps) {
   const router = useRouter()
+  const { data: classOptions = [], isLoading: classesLoading } =
+    useClassesQuery()
+
   const [form, setForm] = React.useState<StudentFormData>(INITIAL_FORM)
   const [submitting, setSubmitting] = React.useState(false)
   const [errors, setErrors] = React.useState<Record<string, string>>({})
@@ -78,7 +85,7 @@ export function StudentFormPage({
         indexNumber: student.indexNumber,
         address: student.address,
         birthDay: student.birthDay,
-        currentGrade: student.currentGrade,
+        classId: student.classId ?? "",
         specialRemarks: student.specialRemarks ?? "",
         contactNo: student.contactNo,
         guardianName: student.guardianName ?? "",
@@ -105,14 +112,23 @@ export function StudentFormPage({
     }
   }
 
+  const handleSelectChange = (field: string, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }))
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next[field]
+        return next
+      })
+    }
+  }
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     setImageFile(file)
     const reader = new FileReader()
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string)
-    }
+    reader.onloadend = () => setImagePreview(reader.result as string)
     reader.readAsDataURL(file)
   }
 
@@ -120,9 +136,7 @@ export function StudentFormPage({
     setImageFile(null)
     setImagePreview(null)
     setForm((prev) => ({ ...prev, imageUrl: undefined }))
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
+    if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
   const uploadImage = async (): Promise<string | undefined> => {
@@ -148,9 +162,8 @@ export function StudentFormPage({
     if (!form.indexNumber.trim()) errs.indexNumber = "Index number is required"
     if (!form.address.trim()) errs.address = "Address is required"
     if (!form.birthDay) errs.birthDay = "Date of birth is required"
-    if (!form.currentGrade) errs.currentGrade = "Grade is required"
-    if (!form.contactNo.trim())
-      errs.contactNo = "Contact number is required"
+    if (!form.classId) errs.classId = "Class is required"
+    if (!form.contactNo.trim()) errs.contactNo = "Contact number is required"
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -159,21 +172,18 @@ export function StudentFormPage({
     e.preventDefault()
     if (!validate()) return
     setSubmitting(true)
-
     const imageUrl = await uploadImage()
     const dataToSubmit = { ...form }
     if (imageUrl) dataToSubmit.imageUrl = imageUrl
-
     const success = await onSubmit(dataToSubmit)
     setSubmitting(false)
-    if (success) {
-      router.push("/students")
-    }
+    if (success) router.push("/students")
   }
+
+  const isBusy = submitting || uploading
 
   return (
     <div className="mx-auto w-full max-w-4xl">
-      {/* Header */}
       <div className="mb-5">
         <h1 className="font-heading text-xl font-semibold tracking-tight">
           {title}
@@ -183,9 +193,8 @@ export function StudentFormPage({
       <Card className="py-5">
         <CardContent className="px-6">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Photo Upload + Name */}
+            {/* Photo + Name row */}
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-              {/* Upload area */}
               <div className="flex shrink-0 flex-col items-center gap-2.5">
                 <input
                   ref={fileInputRef}
@@ -222,16 +231,15 @@ export function StudentFormPage({
                   <Button
                     type="button"
                     variant="ghost"
-                    size="xs"
+                    size="sm"
                     onClick={handleRemoveImage}
                     className="h-6 text-xs text-muted-foreground"
                   >
-                    Remove Photo
+                    Remove
                   </Button>
                 )}
               </div>
 
-              {/* Name */}
               <div className="flex-1 space-y-1.5">
                 <Label htmlFor="name" className="text-sm">
                   Full Name <span className="text-destructive">*</span>
@@ -241,7 +249,7 @@ export function StudentFormPage({
                   name="name"
                   value={form.name}
                   onChange={handleChange}
-                  placeholder="e.g. John Doe"
+                  placeholder="e.g. K.A.V.U. Kuruppu"
                   className="h-10"
                 />
                 {errors.name && (
@@ -250,7 +258,7 @@ export function StudentFormPage({
               </div>
             </div>
 
-            {/* 3-column grid */}
+            {/* Main fields grid */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-1.5">
                 <Label htmlFor="indexNumber" className="text-sm">
@@ -261,7 +269,7 @@ export function StudentFormPage({
                   name="indexNumber"
                   value={form.indexNumber}
                   onChange={handleChange}
-                  placeholder="e.g. WCC/2024/001"
+                  placeholder="e.g. 15707"
                   className="h-10"
                 />
                 {errors.indexNumber && (
@@ -271,39 +279,40 @@ export function StudentFormPage({
                 )}
               </div>
 
+              {/* Class selector — replaces the old grade dropdown */}
               <div className="space-y-1.5">
-                <Label htmlFor="currentGrade" className="text-sm">
-                  Grade <span className="text-destructive">*</span>
+                <Label htmlFor="classId" className="text-sm">
+                  Class <span className="text-destructive">*</span>
                 </Label>
                 <Select
-                  value={form.currentGrade}
-                  onValueChange={(value) => {
-                    if (value === null) return
-                    setForm((prev) => ({ ...prev, currentGrade: value }))
-                    if (errors.currentGrade) {
-                      setErrors((prev) => {
-                        const next = { ...prev }
-                        delete next.currentGrade
-                        return next
-                      })
-                    }
-                  }}
+                  value={form.classId}
+                  onValueChange={(value) =>
+                    handleSelectChange("classId", value)
+                  }
+                  disabled={classesLoading}
                 >
-                  <SelectTrigger id="currentGrade" className="h-10 w-full">
-                    <SelectValue placeholder="Select grade" />
+                  <SelectTrigger id="classId" className="h-10 w-full">
+                    <SelectValue
+                      placeholder={
+                        classesLoading ? "Loading classes..." : "Select class"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {GRADE_OPTIONS.map((grade) => (
-                      <SelectItem key={grade} value={grade}>
-                        {grade}
+                    {classOptions.length === 0 && !classesLoading && (
+                      <div className="px-3 py-2 text-xs text-muted-foreground">
+                        No classes found. Ask an admin to create classes first.
+                      </div>
+                    )}
+                    {classOptions.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {classLabel(c)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.currentGrade && (
-                  <p className="text-xs text-destructive">
-                    {errors.currentGrade}
-                  </p>
+                {errors.classId && (
+                  <p className="text-xs text-destructive">{errors.classId}</p>
                 )}
               </div>
 
@@ -337,42 +346,27 @@ export function StudentFormPage({
                   className="h-10"
                 />
                 {errors.contactNo && (
-                  <p className="text-xs text-destructive">
-                    {errors.contactNo}
-                  </p>
+                  <p className="text-xs text-destructive">{errors.contactNo}</p>
                 )}
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="guardianName" className="text-sm">
-                  Guardian's Name
+                  Guardian&apos;s Name
                 </Label>
                 <Input
                   id="guardianName"
                   name="guardianName"
                   value={form.guardianName ?? ""}
                   onChange={handleChange}
-                  placeholder="e.g. Jane Doe"
+                  placeholder="e.g. K.P. Budhdhima"
                   className="h-10"
                 />
               </div>
             </div>
 
-            {/* Contact + Siblings */}
+            {/* Textareas */}
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="siblingsAtSchool" className="text-sm">
-                  Names of Siblings at School
-                </Label>
-                <Textarea
-                  id="siblingsAtSchool"
-                  name="siblingsAtSchool"
-                  value={form.siblingsAtSchool ?? ""}
-                  onChange={handleChange}
-                  placeholder="Names of siblings attending the same school..."
-                  rows={3}
-                />
-              </div>
               <div className="space-y-1.5">
                 <Label htmlFor="address" className="text-sm">
                   Address <span className="text-destructive">*</span>
@@ -391,6 +385,20 @@ export function StudentFormPage({
               </div>
 
               <div className="space-y-1.5">
+                <Label htmlFor="siblingsAtSchool" className="text-sm">
+                  Siblings at School
+                </Label>
+                <Textarea
+                  id="siblingsAtSchool"
+                  name="siblingsAtSchool"
+                  value={form.siblingsAtSchool ?? ""}
+                  onChange={handleChange}
+                  placeholder="Names of siblings attending the same school"
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-1.5 sm:col-span-2">
                 <Label htmlFor="specialRemarks" className="text-sm">
                   Special Remarks
                 </Label>
@@ -399,29 +407,34 @@ export function StudentFormPage({
                   name="specialRemarks"
                   value={form.specialRemarks ?? ""}
                   onChange={handleChange}
-                  placeholder="Any special notes, medical conditions, or important information..."
+                  placeholder="Any special notes, prefect status, medical conditions..."
                   rows={3}
                 />
               </div>
             </div>
 
-            {/* Buttons */}
+            {/* Actions */}
             <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => router.push("/students")}
-                disabled={submitting || uploading}
+                disabled={isBusy}
                 className="w-full sm:w-auto"
               >
+                <HugeiconsIcon
+                  icon={Cancel01Icon}
+                  strokeWidth={2}
+                  className="size-4"
+                />
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={submitting || uploading}
+                disabled={isBusy}
                 className="w-full gap-2 sm:w-auto"
               >
-                {submitting || uploading ? (
+                {isBusy ? (
                   <HugeiconsIcon
                     icon={Loading03Icon}
                     strokeWidth={2}

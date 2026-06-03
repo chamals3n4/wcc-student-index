@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { useStudentsQuery, useDeleteStudent } from "@/hooks/use-students"
-import { StudentsTable } from "@/components/students-table"
+import { StudentsTable } from "@/components/student/students-table"
 import { DeleteDialog } from "@/components/delete-dialog"
 import type { Student } from "@/lib/types"
 

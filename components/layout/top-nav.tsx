@@ -13,6 +13,8 @@ import {
   Moon02Icon,
   Add01Icon,
   UserCircleIcon,
+  TeacherIcon,
+  SchoolIcon,
 } from "@hugeicons/core-free-icons"
 import {
   SignedIn,
@@ -75,6 +77,32 @@ export function TopNav() {
         </SignedIn>
 
         <div className="flex-1" />
+
+        <SignedIn>
+          <Link href="/teachers">
+            <Button size="sm" className="gap-1.5">
+              <HugeiconsIcon
+                icon={TeacherIcon}
+                strokeWidth={2}
+                className="size-4"
+              />
+              <span className="hidden sm:inline">Teachers</span>
+            </Button>
+          </Link>
+        </SignedIn>
+
+        <SignedIn>
+          <Link href="/classes">
+            <Button size="sm" className="gap-1.5">
+              <HugeiconsIcon
+                icon={SchoolIcon}
+                strokeWidth={2}
+                className="size-4"
+              />
+              <span className="hidden sm:inline">Classes</span>
+            </Button>
+          </Link>
+        </SignedIn>
 
         <SignedIn>
           <Link href="/students/new">

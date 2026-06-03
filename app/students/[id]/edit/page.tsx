@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useStudentQuery, useUpdateStudent } from "@/hooks/use-students"
-import { StudentFormPage } from "@/components/student-form-page"
+import { StudentFormPage } from "@/components/student/student-form-page"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { HugeiconsIcon } from "@hugeicons/react"

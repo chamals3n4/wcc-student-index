@@ -6,6 +6,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "pub-0b55c161e6c844dfa5d47fadeb46e175.r2.dev",
       },
+      {
+        protocol: "https",
+        hostname: "www.gravatar.com",
+      },
     ],
   },
   output: undefined,

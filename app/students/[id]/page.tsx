@@ -7,7 +7,6 @@ import { DeleteDialog } from "@/components/delete-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -35,10 +34,10 @@ export default function StudentDetailPage() {
   const [deleteOpen, setDeleteOpen] = React.useState(false)
 
   const initials = React.useMemo(() => {
-    if (!student) return ""
+    if (!student?.name) return ""
     return student.name
       .split(" ")
-      .map((n) => n[0])
+      .map((n: string) => n[0])
       .join("")
       .slice(0, 2)
       .toUpperCase()
@@ -60,6 +59,13 @@ export default function StudentDetailPage() {
     } catch {
       return student.createdAt
     }
+  }, [student])
+
+  // Build the class label from the joined fields
+  const classLabel = React.useMemo(() => {
+    if (!student?.grade) return "—"
+    const base = `Grade ${student.grade} - ${student.section}`
+    return student.stream ? `${base} (${student.stream})` : base
   }, [student])
 
   if (isLoading) {
@@ -100,14 +106,17 @@ export default function StudentDetailPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Top bar */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={() => router.back()}>
-          <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} /> Back
+          <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
+          Back
         </Button>
         <div className="flex items-center gap-2">
           <Link href={`/students/${indexNumber}/edit`}>
             <Button variant="outline" size="sm">
-              <HugeiconsIcon icon={PencilEdit01Icon} strokeWidth={2} /> Edit
+              <HugeiconsIcon icon={PencilEdit01Icon} strokeWidth={2} />
+              Edit
             </Button>
           </Link>
           <Button
@@ -115,15 +124,17 @@ export default function StudentDetailPage() {
             size="sm"
             onClick={() => setDeleteOpen(true)}
           >
-            <HugeiconsIcon icon={Delete01Icon} strokeWidth={2} /> Delete
+            <HugeiconsIcon icon={Delete01Icon} strokeWidth={2} />
+            Delete
           </Button>
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
+        {/* Profile card */}
         <Card className="h-fit lg:col-span-1">
-          <CardContent className="flex flex-col items-center gap-4 pt-6">
-            <div className="size-32 overflow-hidden rounded-full ring-4 ring-primary/50">
+          <CardContent className="flex flex-col items-center gap-4 pt-6 pb-6">
+            <div className="size-32 overflow-hidden rounded-full ring-4 ring-primary/20">
               {student.imageUrl ? (
                 <img
                   src={student.imageUrl}
@@ -142,16 +153,27 @@ export default function StudentDetailPage() {
               <h2 className="font-heading text-xl font-semibold">
                 {student.name}
               </h2>
-              <Badge variant="secondary" className="mt-1">
-                {student.currentGrade}
+              <Badge variant="secondary" className="mt-1.5">
+                {classLabel}
               </Badge>
             </div>
             <p className="font-mono text-sm text-muted-foreground">
-              {student.indexNumber}
+              #{student.indexNumber}
             </p>
+            {student.enrollmentStatus && (
+              <Badge
+                variant={
+                  student.enrollmentStatus === "active" ? "default" : "outline"
+                }
+                className="text-xs"
+              >
+                {student.enrollmentStatus}
+              </Badge>
+            )}
           </CardContent>
         </Card>
 
+        {/* Detail card */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="font-heading text-base">
@@ -161,7 +183,11 @@ export default function StudentDetailPage() {
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               {[
-                { icon: UserIcon, label: "Full Name", value: student.name },
+                {
+                  icon: UserIcon,
+                  label: "Full Name",
+                  value: student.name,
+                },
                 {
                   icon: FingerPrintIcon,
                   label: "Index Number",
@@ -175,8 +201,8 @@ export default function StudentDetailPage() {
                 },
                 {
                   icon: SchoolIcon,
-                  label: "Grade",
-                  value: student.currentGrade,
+                  label: "Class",
+                  value: classLabel,
                   badge: true,
                 },
                 {
@@ -186,8 +212,8 @@ export default function StudentDetailPage() {
                   mono: true,
                 },
                 {
-                  icon: Call02Icon,
-                  label: "Guardian's Name",
+                  icon: UserIcon,
+                  label: "Guardian",
                   value: student.guardianName || "—",
                 },
               ].map(({ icon, label, value, mono, badge: isBadge }) => (
@@ -195,7 +221,7 @@ export default function StudentDetailPage() {
                   <HugeiconsIcon
                     icon={icon}
                     strokeWidth={2}
-                    className="mt-0.5 size-4 text-muted-foreground"
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
                   />
                   <div>
                     <p className="text-xs text-muted-foreground">{label}</p>
@@ -214,11 +240,12 @@ export default function StudentDetailPage() {
             </div>
 
             <Separator />
+
             <div className="flex items-start gap-3">
               <HugeiconsIcon
                 icon={Location01Icon}
                 strokeWidth={2}
-                className="mt-0.5 size-4 text-muted-foreground"
+                className="mt-0.5 size-4 shrink-0 text-muted-foreground"
               />
               <div>
                 <p className="text-xs text-muted-foreground">Address</p>
@@ -233,7 +260,7 @@ export default function StudentDetailPage() {
                   <HugeiconsIcon
                     icon={Note02Icon}
                     strokeWidth={2}
-                    className="mt-0.5 size-4 text-muted-foreground"
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
                   />
                   <div>
                     <p className="text-xs text-muted-foreground">
@@ -252,11 +279,11 @@ export default function StudentDetailPage() {
                   <HugeiconsIcon
                     icon={UserIcon}
                     strokeWidth={2}
-                    className="mt-0.5 size-4 text-muted-foreground"
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
                   />
                   <div>
                     <p className="text-xs text-muted-foreground">
-                      Names of Siblings at School
+                      Siblings at School
                     </p>
                     <p className="text-sm">{student.siblingsAtSchool}</p>
                   </div>
@@ -265,11 +292,12 @@ export default function StudentDetailPage() {
             )}
 
             <Separator />
+
             <div className="flex items-start gap-3">
               <HugeiconsIcon
                 icon={Calendar01Icon}
                 strokeWidth={2}
-                className="mt-0.5 size-4 text-muted-foreground"
+                className="mt-0.5 size-4 shrink-0 text-muted-foreground"
               />
               <div>
                 <p className="text-xs text-muted-foreground">Record Created</p>
@@ -278,6 +306,28 @@ export default function StudentDetailPage() {
                 </p>
               </div>
             </div>
+
+            {/* Academic year context */}
+            {student.academicYear && (
+              <>
+                <Separator />
+                <div className="flex items-start gap-3">
+                  <HugeiconsIcon
+                    icon={SchoolIcon}
+                    strokeWidth={2}
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                  />
+                  <div>
+                    <p className="text-xs text-muted-foreground">
+                      Academic Year
+                    </p>
+                    <p className="text-sm font-medium">
+                      {student.academicYear}
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

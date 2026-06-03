@@ -1,7 +1,7 @@
 "use client"
 
 import { useCreateStudent } from "@/hooks/use-students"
-import { StudentFormPage } from "@/components/student-form-page"
+import { StudentFormPage } from "@/components/student/student-form-page"
 
 export default function NewStudentPage() {
   const createMutation = useCreateStudent()

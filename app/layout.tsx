@@ -6,7 +6,7 @@ import "./globals.css"
 import { AsgardeoProvider } from "@asgardeo/nextjs/server"
 import { ThemeProvider } from "@/components/theme-provider"
 import { QueryProvider } from "@/components/query-provider"
-import { AppShell } from "@/components/app-shell"
+import { AppShell } from "@/components/layout/app-shell"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 
