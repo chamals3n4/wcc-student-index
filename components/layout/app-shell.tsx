@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { SignedIn, SignedOut } from "@asgardeo/nextjs"
-import { TopNav } from "@/components/top-nav"
+import { TopNav } from "@/components/layout/top-nav"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
