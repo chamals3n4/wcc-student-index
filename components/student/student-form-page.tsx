@@ -34,7 +34,7 @@ interface StudentWithClass {
   contactNo: string
   guardianName?: string | null
   siblingsAtSchool?: string | null
-  classId: string
+  classId: string | null
 }
 
 interface StudentFormPageProps {
@@ -78,6 +78,7 @@ export function StudentFormPage({
   const [uploading, setUploading] = React.useState(false)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
 
+  // Populate form when editing an existing student
   React.useEffect(() => {
     if (student) {
       setForm({
@@ -98,6 +99,13 @@ export function StudentFormPage({
     }
   }, [student])
 
+  // Auto-select when teacher has exactly one class assigned
+  React.useEffect(() => {
+    if (classOptions.length === 1 && !form.classId) {
+      setForm((prev) => ({ ...prev, classId: classOptions[0].id }))
+    }
+  }, [classOptions])
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -112,7 +120,8 @@ export function StudentFormPage({
     }
   }
 
-  const handleSelectChange = (field: string, value: string) => {
+  const handleSelectChange = (field: string, value: string | null) => {
+    if (value === null) return
     setForm((prev) => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors((prev) => {
@@ -181,6 +190,14 @@ export function StudentFormPage({
   }
 
   const isBusy = submitting || uploading
+  const isClassLocked = classOptions.length === 1
+
+  // Compute selected class label explicitly to avoid UUID showing
+  const selectedClassLabel = React.useMemo(() => {
+    if (!form.classId) return null
+    const c = classOptions.find((c) => c.id === form.classId)
+    return c ? classLabel(c) : null
+  }, [form.classId, classOptions])
 
   return (
     <div className="mx-auto w-full max-w-4xl">
@@ -279,7 +296,7 @@ export function StudentFormPage({
                 )}
               </div>
 
-              {/* Class selector — replaces the old grade dropdown */}
+              {/* Class selector */}
               <div className="space-y-1.5">
                 <Label htmlFor="classId" className="text-sm">
                   Class <span className="text-destructive">*</span>
@@ -289,14 +306,16 @@ export function StudentFormPage({
                   onValueChange={(value) =>
                     handleSelectChange("classId", value)
                   }
-                  disabled={classesLoading}
+                  disabled={classesLoading || isClassLocked}
                 >
                   <SelectTrigger id="classId" className="h-10 w-full">
                     <SelectValue
                       placeholder={
                         classesLoading ? "Loading classes..." : "Select class"
                       }
-                    />
+                    >
+                      {selectedClassLabel ?? undefined}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {classOptions.length === 0 && !classesLoading && (
@@ -311,6 +330,11 @@ export function StudentFormPage({
                     ))}
                   </SelectContent>
                 </Select>
+                {isClassLocked && (
+                  <p className="text-xs text-muted-foreground">
+                    You are assigned to this class only
+                  </p>
+                )}
                 {errors.classId && (
                   <p className="text-xs text-destructive">{errors.classId}</p>
                 )}

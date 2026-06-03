@@ -1,14 +1,24 @@
 import { NextResponse } from "next/server"
 import { db } from "@/db"
 import { students, enrollments, classes } from "@/db/schema"
-import { eq } from "drizzle-orm"
+import { eq, and, inArray } from "drizzle-orm"
 import { studentSchema } from "@/lib/validation"
+import { getAccessibleClassIds, canAccessClass } from "@/lib/session"
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
     const validated = studentSchema.parse(body)
     const { classId, ...studentData } = validated
+
+    // RBAC: teacher can only add students to their assigned classes
+    const allowed = await canAccessClass(classId)
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "You are not assigned to this class" },
+        { status: 403 }
+      )
+    }
 
     const result = await db.transaction(async (tx) => {
       const [student] = await tx
@@ -27,6 +37,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, data: result })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error(error)
     return NextResponse.json(
       { error: "Failed to create student" },
@@ -37,6 +50,11 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
+    const accessibleClassIds = await getAccessibleClassIds()
+
+    // Build the where clause
+    const baseWhere = eq(enrollments.status, "active")
+
     const data = await db
       .select({
         id: students.id,
@@ -62,11 +80,19 @@ export async function GET() {
       .from(students)
       .leftJoin(enrollments, eq(enrollments.studentId, students.id))
       .leftJoin(classes, eq(classes.id, enrollments.classId))
-      // only pull active enrollment — one row per student
-      .where(eq(enrollments.status, "active"))
+      .where(
+        // super_admin → accessibleClassIds is null → show all
+        // teacher → only students in their assigned classes
+        accessibleClassIds === null
+          ? baseWhere
+          : and(baseWhere, inArray(enrollments.classId, accessibleClassIds))
+      )
 
     return NextResponse.json(data)
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error(error)
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 })
   }

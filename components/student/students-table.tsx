@@ -34,15 +34,16 @@ import {
   StudentIcon,
   FilterIcon,
 } from "@hugeicons/core-free-icons"
-import type { Student } from "@/lib/types"
+import type { EnrichedStudent } from "@/lib/types"
 import Link from "next/link"
 
 interface StudentsTableProps {
-  students: Student[]
+  students: EnrichedStudent[]
   loading: boolean
   onAdd: () => void
-  onEdit: (student: Student) => void
-  onDelete: (student: Student) => void
+  onEdit: (student: EnrichedStudent) => void
+  onDelete: (student: EnrichedStudent) => void
+  showGradeFilter?: boolean
 }
 
 const PAGE_SIZES = [5, 10, 20, 50] as const
@@ -53,17 +54,22 @@ export function StudentsTable({
   onAdd: _onAdd,
   onEdit,
   onDelete,
+  showGradeFilter = true,
 }: StudentsTableProps) {
   const [search, setSearch] = React.useState("")
   const [gradeFilter, setGradeFilter] = React.useState("all")
-  const [sortField, setSortField] = React.useState<keyof Student>("createdAt")
+  const [sortField, setSortField] =
+    React.useState<keyof EnrichedStudent>("createdAt")
   const [sortDir, setSortDir] = React.useState<"asc" | "desc">("desc")
   const [page, setPage] = React.useState(1)
   const [pageSize, setPageSize] = React.useState(10)
 
   const grades = React.useMemo(() => {
-    const set = new Set(students.map((s) => s.currentGrade))
-    return Array.from(set).sort()
+    const nums = students
+      .map((s) => s.grade)
+      .filter((g): g is number => g != null)
+    const set = new Set(nums)
+    return Array.from(set).sort((a, b) => a - b)
   }, [students])
 
   const filtered = React.useMemo(() => {
@@ -80,7 +86,7 @@ export function StudentsTable({
     }
 
     if (gradeFilter !== "all") {
-      result = result.filter((s) => s.currentGrade === gradeFilter)
+      result = result.filter((s) => s.grade === Number(gradeFilter))
     }
 
     result.sort((a, b) => {
@@ -102,7 +108,7 @@ export function StudentsTable({
   const startItem = filtered.length === 0 ? 0 : (page - 1) * pageSize + 1
   const endItem = Math.min(page * pageSize, filtered.length)
 
-  const toggleSort = (field: keyof Student) => {
+  const toggleSort = (field: keyof EnrichedStudent) => {
     if (sortField === field) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"))
     } else {
@@ -111,7 +117,7 @@ export function StudentsTable({
     }
   }
 
-  const SortIcon = ({ field }: { field: keyof Student }) => {
+  const SortIcon = ({ field }: { field: keyof EnrichedStudent }) => {
     if (sortField !== field) return null
     return (
       <HugeiconsIcon
@@ -127,7 +133,7 @@ export function StudentsTable({
       <div className="space-y-3">
         <div className="flex items-center gap-3">
           <Skeleton className="h-10 w-64" />
-          <Skeleton className="h-10 w-36" />
+          {showGradeFilter && <Skeleton className="h-10 w-36" />}
         </div>
         <div className="border">
           <Table>
@@ -175,29 +181,31 @@ export function StudentsTable({
           />
         </div>
 
-        <Select
-          value={gradeFilter}
-          onValueChange={(value) => {
-            if (value !== null) setGradeFilter(value)
-          }}
-        >
-          <SelectTrigger className="h-10 w-40 text-sm">
-            <HugeiconsIcon
-              icon={FilterIcon}
-              strokeWidth={2}
-              className="size-4 text-muted-foreground"
-            />
-            <SelectValue placeholder="All Grades" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Grades</SelectItem>
-            {grades.map((g) => (
-              <SelectItem key={g} value={g}>
-                {g}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {showGradeFilter && (
+          <Select
+            value={gradeFilter}
+            onValueChange={(value) => {
+              if (value !== null) setGradeFilter(value)
+            }}
+          >
+            <SelectTrigger className="h-10 w-40 text-sm">
+              <HugeiconsIcon
+                icon={FilterIcon}
+                strokeWidth={2}
+                className="size-4 text-muted-foreground"
+              />
+              <SelectValue placeholder="All Grades" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Grades</SelectItem>
+              {grades.map((g) => (
+                <SelectItem key={g} value={String(g)}>
+                  Grade {g}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* Table */}
@@ -220,9 +228,9 @@ export function StudentsTable({
               </TableHead>
               <TableHead
                 className="cursor-pointer text-sm font-medium select-none"
-                onClick={() => toggleSort("currentGrade")}
+                onClick={() => toggleSort("grade")}
               >
-                Grade <SortIcon field="currentGrade" />
+                Grade <SortIcon field="grade" />
               </TableHead>
               <TableHead className="text-sm font-medium">Contact</TableHead>
               <TableHead className="w-56 text-right text-sm font-medium">
@@ -283,7 +291,7 @@ export function StudentsTable({
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary" className="text-xs">
-                      {student.currentGrade}
+                      {student.grade != null ? `Grade ${student.grade}` : "—"}
                     </Badge>
                   </TableCell>
                   <TableCell className="font-mono text-sm">

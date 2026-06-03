@@ -29,11 +29,15 @@ import {
   SchoolIcon,
   Delete01Icon,
   Add01Icon,
+  Alert02Icon,
 } from "@hugeicons/core-free-icons"
+import { useSession } from "@/hooks/use-session"
 
 export default function ClassDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+
+  const { data: session, isLoading: sessionLoading } = useSession()
 
   const { data: allClasses = [], isLoading: classLoading } = useClassesQuery()
   const { data: assignments = [], isLoading: assignLoading } =
@@ -60,11 +64,29 @@ export default function ClassDetailPage() {
     setSelectedTeacherId("")
   }
 
-  if (classLoading) {
+  const isSuperAdmin = session?.roles.includes("super_admin") ?? false
+
+  if (sessionLoading || classLoading) {
     return (
       <div className="mx-auto w-full max-w-2xl space-y-4">
         <Skeleton className="h-9 w-32" />
         <Skeleton className="h-48 rounded-xl" />
+      </div>
+    )
+  }
+
+  if (!isSuperAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-20">
+        <HugeiconsIcon
+          icon={Alert02Icon}
+          strokeWidth={1.5}
+          className="size-12 text-muted-foreground"
+        />
+        <p className="text-base font-medium">Access Denied</p>
+        <p className="text-sm text-muted-foreground">
+          Only administrators can manage class assignments.
+        </p>
       </div>
     )
   }
@@ -198,7 +220,9 @@ export default function ClassDetailPage() {
           <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:items-end">
             <Select
               value={selectedTeacherId}
-              onValueChange={setSelectedTeacherId}
+              onValueChange={(v) => {
+                if (v !== null) setSelectedTeacherId(v)
+              }}
             >
               <SelectTrigger className="h-9 flex-1">
                 <SelectValue
@@ -207,7 +231,19 @@ export default function ClassDetailPage() {
                       ? "All teachers assigned"
                       : "Select a teacher..."
                   }
-                />
+                >
+                  {/* Explicit display label so it never shows UUID */}
+                  {selectedTeacherId
+                    ? (() => {
+                        const t = availableTeachers.find(
+                          (t) => t.id === selectedTeacherId
+                        )
+                        return t
+                          ? `${t.name} — ${t.email}`
+                          : "Select a teacher..."
+                      })()
+                    : null}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {availableTeachers.map((t) => (

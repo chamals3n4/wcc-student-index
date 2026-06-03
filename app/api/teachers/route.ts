@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server"
-import { asgardeo } from "@asgardeo/nextjs/server"
 import { db } from "@/db"
 import { teachers } from "@/db/schema"
 import { eq } from "drizzle-orm"
@@ -9,30 +8,34 @@ import {
   getScimAccessToken,
   scimRequestHeaders,
 } from "@/lib/asgardeo-scim-token"
+import { requireRole } from "@/lib/session"
 import { z } from "zod"
 
 const ROUTE_LOG = "[API /teachers]"
-
-async function requireSignedIn() {
-  const client = await asgardeo()
-  const sessionId = await client.getSessionId()
-  if (!sessionId) throw new Error("Unauthorized")
-}
 
 const createTeacherSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   email: z.string().email(),
-  // "set_password" = admin sets it now, "invite" = email invite to set own
   mode: z.enum(["set_password", "invite"]),
   password: z.string().optional(),
 })
 
 export async function GET() {
   try {
+    // Only super_admin can list teachers
+    await requireRole("super_admin")
+
     const data = await db.select().from(teachers)
     return NextResponse.json(data)
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === "Unauthorized" || error.message === "Forbidden")
+    ) {
+      const status = error.message === "Forbidden" ? 403 : 401
+      return NextResponse.json({ error: error.message }, { status })
+    }
     console.error(`${ROUTE_LOG} GET error:`, error)
     return NextResponse.json(
       { error: "Failed to fetch teachers" },
@@ -44,7 +47,9 @@ export async function GET() {
 export async function POST(req: Request) {
   console.log(`${ROUTE_LOG} POST /api/teachers`)
   try {
-    await requireSignedIn()
+    // Only super_admin can create teachers
+    await requireRole("super_admin")
+
     const scimToken = await getScimAccessToken()
     const body = await req.json()
     const validated = createTeacherSchema.parse(body)
@@ -58,25 +63,20 @@ export async function POST(req: Request) {
 
     const base = getAsgardeoApiBase()
 
-    // SCIM body based on mode
     const scimBody: Record<string, unknown> = {
       schemas: ["urn:ietf:params:scim:schemas:core:2.0:User"],
       name: {
         givenName: validated.firstName,
         familyName: validated.lastName,
       },
-      // asgardeo userName must be DEFAULT/<email>
       userName: `DEFAULT/${validated.email}`,
       emails: [{ primary: true, value: validated.email }],
     }
 
     if (validated.mode === "invite") {
-      // sends email to user to set their own password
       scimBody["urn:scim:wso2:schema"] = { askPassword: true }
     } else {
       scimBody.password = validated.password
-      // ask to verify the password
-      //scimBody["urn:scim:wso2:schema"] = { verifyEmail: true }
     }
 
     console.log(
@@ -104,10 +104,8 @@ export async function POST(req: Request) {
     const scimUser = await scimRes.json()
     console.log(`${ROUTE_LOG} Asgardeo user created — id: ${scimUser.id}`)
 
-    // assign teacher rolw
     await assignAsgardeoRole(scimToken, scimUser.id, "teacher")
 
-    // sync to the DB
     const [teacher] = await db
       .insert(teachers)
       .values({
@@ -120,20 +118,28 @@ export async function POST(req: Request) {
     console.log(`${ROUTE_LOG} teacher synced to DB — id: ${teacher.id}`)
     return NextResponse.json({ success: true, data: teacher }, { status: 201 })
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === "Unauthorized" || error.message === "Forbidden")
+    ) {
+      const status = error.message === "Forbidden" ? 403 : 401
+      return NextResponse.json({ error: error.message }, { status })
+    }
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues }, { status: 400 })
     }
     const msg = error instanceof Error ? error.message : String(error)
-    const status = msg === "Unauthorized" ? 401 : 500
     console.error(`${ROUTE_LOG} POST error:`, msg)
-    return NextResponse.json({ error: msg }, { status })
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
 
 export async function DELETE(req: Request) {
   console.log(`${ROUTE_LOG} DELETE /api/teachers`)
   try {
-    await requireSignedIn()
+    // Only super_admin can delete teachers
+    await requireRole("super_admin")
+
     const scimToken = await getScimAccessToken()
     const { id } = await req.json()
     const base = getAsgardeoApiBase()
@@ -173,9 +179,15 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === "Unauthorized" || error.message === "Forbidden")
+    ) {
+      const status = error.message === "Forbidden" ? 403 : 401
+      return NextResponse.json({ error: error.message }, { status })
+    }
     const msg = error instanceof Error ? error.message : String(error)
-    const status = msg === "Unauthorized" ? 401 : 500
     console.error(`${ROUTE_LOG} DELETE error:`, msg)
-    return NextResponse.json({ error: msg }, { status })
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }

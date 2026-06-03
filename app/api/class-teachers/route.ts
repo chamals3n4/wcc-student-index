@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server"
 import { db } from "@/db"
 import { classTeachers, teachers, classes } from "@/db/schema"
-import { eq, and } from "drizzle-orm"
+import { eq } from "drizzle-orm"
+import { requireRole } from "@/lib/session"
 
 export async function GET(req: Request) {
   try {
+    // Only super_admin can view teacher assignments
+    await requireRole("super_admin")
+
     const { searchParams } = new URL(req.url)
     const classId = searchParams.get("classId")
     const teacherId = searchParams.get("teacherId")
@@ -35,6 +39,13 @@ export async function GET(req: Request) {
 
     return NextResponse.json(filtered)
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === "Unauthorized" || error.message === "Forbidden")
+    ) {
+      const status = error.message === "Forbidden" ? 403 : 401
+      return NextResponse.json({ error: error.message }, { status })
+    }
     console.error(error)
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 })
   }
@@ -42,6 +53,9 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    // Only super_admin can assign teachers to classes
+    await requireRole("super_admin")
+
     const { classId, teacherId } = await req.json()
     if (!classId || !teacherId) {
       return NextResponse.json(
@@ -55,6 +69,13 @@ export async function POST(req: Request) {
       .returning()
     return NextResponse.json({ success: true, data: created })
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === "Unauthorized" || error.message === "Forbidden")
+    ) {
+      const status = error.message === "Forbidden" ? 403 : 401
+      return NextResponse.json({ error: error.message }, { status })
+    }
     console.error(error)
     return NextResponse.json(
       { error: "Failed to assign teacher" },
@@ -65,10 +86,20 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    // Only super_admin can unassign teachers
+    await requireRole("super_admin")
+
     const { id } = await req.json()
     await db.delete(classTeachers).where(eq(classTeachers.id, id))
     return NextResponse.json({ success: true })
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === "Unauthorized" || error.message === "Forbidden")
+    ) {
+      const status = error.message === "Forbidden" ? 403 : 401
+      return NextResponse.json({ error: error.message }, { status })
+    }
     console.error(error)
     return NextResponse.json(
       { error: "Failed to unassign teacher" },

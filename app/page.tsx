@@ -3,10 +3,11 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { useStudentsQuery, useDeleteStudent } from "@/hooks/use-students"
+import { useSession } from "@/hooks/use-session"
 import { StatsCards } from "@/components/overview/stats-cards"
 import { StudentsTable } from "@/components/student/students-table"
 import { DeleteDialog } from "@/components/delete-dialog"
-import type { Student } from "@/lib/types"
+import type { EnrichedStudent } from "@/lib/types"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/button"
@@ -14,13 +15,24 @@ import Link from "next/link"
 
 export default function DashboardPage() {
   const router = useRouter()
+  const { data: session } = useSession()
   const { data: students = [], isLoading } = useStudentsQuery()
   const deleteMutation = useDeleteStudent()
-  const [deleteTarget, setDeleteTarget] = React.useState<Student | null>(null)
+  const [deleteTarget, setDeleteTarget] =
+    React.useState<EnrichedStudent | null>(null)
+
+  // Redirect teachers to /students — they don't need the dashboard
+  React.useEffect(() => {
+    if (session?.roles.includes("teacher")) {
+      router.replace("/students")
+    }
+  }, [session, router])
 
   const uniqueGrades = React.useMemo(() => {
-    const set = new Set(students.map((s) => s.currentGrade))
-    return set.size
+    const nums = students
+      .map((s) => s.grade)
+      .filter((g): g is number => g != null)
+    return new Set(nums).size
   }, [students])
 
   const today = React.useMemo(() => {

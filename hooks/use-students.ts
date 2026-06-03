@@ -1,20 +1,24 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import type { Student, StudentFormData, Class, Teacher } from "@/lib/types"
+import type {
+  EnrichedStudent,
+  StudentFormData,
+  Class,
+  Teacher,
+} from "@/lib/types"
 
 const BASE_URL = "/api/students"
 
-async function fetchStudents(): Promise<Student[]> {
+async function fetchStudents(): Promise<EnrichedStudent[]> {
   const res = await fetch(BASE_URL)
   if (!res.ok) throw new Error("Failed to fetch")
   return res.json()
 }
 
-async function fetchStudent(indexNumber: string): Promise<Student> {
+async function fetchStudent(indexNumber: string): Promise<EnrichedStudent> {
   const res = await fetch(`${BASE_URL}/${indexNumber}`)
   if (!res.ok) throw new Error("Failed to fetch")
-  const data = await res.json()
-  return data[0]
+  return res.json()
 }
 
 async function createStudent(data: StudentFormData) {

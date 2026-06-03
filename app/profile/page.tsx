@@ -14,15 +14,13 @@ export default async function ProfilePage() {
   const client = await asgardeo()
 
   const sessionId = await client.getSessionId()
+  if (!sessionId) {
+    return <p className="p-6 text-neutral-500">You are not signed in.</p>
+  }
+
   const accessToken = await client.getAccessToken(sessionId)
   const claims = decodeJWT(accessToken)
-
-  let user: unknown = null
   const APP_ROLES = ["super_admin", "teacher"]
-
-  try {
-    user = await client.getUser(sessionId)
-  } catch (err) {}
 
   if (!claims) {
     return <p className="p-6 text-neutral-500">You are not signed in.</p>
@@ -75,7 +73,7 @@ export default async function ProfilePage() {
                 claims.sub}
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {roles.map((role) => (
+              {roles.map((role: string) => (
                 <span
                   key={role}
                   className="rounded border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400"

@@ -10,12 +10,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import type { Student } from "@/lib/types"
+import type { EnrichedStudent } from "@/lib/types"
 
 interface DeleteDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  student: Student | null
+  student: EnrichedStudent | null
   onConfirm: () => Promise<boolean>
 }
 

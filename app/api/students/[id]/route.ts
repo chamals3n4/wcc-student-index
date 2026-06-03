@@ -3,6 +3,7 @@ import { students, enrollments, classes } from "@/db/schema"
 import { eq, and } from "drizzle-orm"
 import { NextResponse } from "next/server"
 import { studentSchema } from "@/lib/validation"
+import { getAccessibleClassIds } from "@/lib/session"
 
 export async function GET(
   _req: Request,
@@ -10,6 +11,7 @@ export async function GET(
 ) {
   try {
     const { id: indexNumber } = await params
+    const accessibleClassIds = await getAccessibleClassIds()
 
     const rows = await db
       .select({
@@ -47,8 +49,25 @@ export async function GET(
       return NextResponse.json({ error: "Student not found" }, { status: 404 })
     }
 
-    return NextResponse.json(rows[0])
+    const student = rows[0]
+
+    // RBAC: teacher can only view students in their assigned classes
+    if (
+      accessibleClassIds !== null &&
+      student.classId &&
+      !accessibleClassIds.includes(student.classId)
+    ) {
+      return NextResponse.json(
+        { error: "You do not have access to this student" },
+        { status: 403 }
+      )
+    }
+
+    return NextResponse.json(student)
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error(error)
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 })
   }
@@ -60,24 +79,51 @@ export async function PUT(
 ) {
   try {
     const { id: indexNumber } = await params
+    const accessibleClassIds = await getAccessibleClassIds()
     const body = await req.json()
     const validated = studentSchema.parse(body)
     const { classId, ...studentData } = validated
 
+    // RBAC: teacher can only update students in their assigned classes
+    // First, check the student's current class
+    const [existing] = await db
+      .select({ classId: enrollments.classId })
+      .from(students)
+      .leftJoin(enrollments, eq(enrollments.studentId, students.id))
+      .where(
+        and(
+          eq(students.indexNumber, indexNumber),
+          eq(enrollments.status, "active")
+        )
+      )
+
+    if (!existing) {
+      return NextResponse.json({ error: "Student not found" }, { status: 404 })
+    }
+
+    if (
+      accessibleClassIds !== null &&
+      (!existing.classId ||
+        !accessibleClassIds.includes(existing.classId) ||
+        !accessibleClassIds.includes(classId))
+    ) {
+      return NextResponse.json(
+        { error: "You do not have access to this class" },
+        { status: 403 }
+      )
+    }
+
     await db.transaction(async (tx) => {
-      // Update core student fields
       await tx
         .update(students)
         .set(studentData)
         .where(eq(students.indexNumber, indexNumber))
 
-      // Get the student id for enrollment lookup
       const [student] = await tx
         .select({ id: students.id })
         .from(students)
         .where(eq(students.indexNumber, indexNumber))
 
-      // Update the active enrollment's classId if it changed
       await tx
         .update(enrollments)
         .set({ classId })
@@ -91,6 +137,9 @@ export async function PUT(
 
     return NextResponse.json({ success: true })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error(error)
     return NextResponse.json(
       { error: "Failed to update student" },
@@ -105,10 +154,40 @@ export async function DELETE(
 ) {
   try {
     const { id: indexNumber } = await params
-    // cascades to enrollments automatically via onDelete: "cascade"
+    const accessibleClassIds = await getAccessibleClassIds()
+
+    // RBAC: teacher can only delete students in their assigned classes
+    const [existing] = await db
+      .select({ classId: enrollments.classId })
+      .from(students)
+      .leftJoin(enrollments, eq(enrollments.studentId, students.id))
+      .where(
+        and(
+          eq(students.indexNumber, indexNumber),
+          eq(enrollments.status, "active")
+        )
+      )
+
+    if (!existing) {
+      return NextResponse.json({ error: "Student not found" }, { status: 404 })
+    }
+
+    if (
+      accessibleClassIds !== null &&
+      (!existing.classId || !accessibleClassIds.includes(existing.classId))
+    ) {
+      return NextResponse.json(
+        { error: "You do not have access to this student" },
+        { status: 403 }
+      )
+    }
+
     await db.delete(students).where(eq(students.indexNumber, indexNumber))
     return NextResponse.json({ success: true })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error(error)
     return NextResponse.json(
       { error: "Failed to delete student" },
