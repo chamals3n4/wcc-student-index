@@ -16,6 +16,7 @@ import {
   TeacherIcon,
   SchoolIcon,
   Menu01Icon,
+  Download04Icon,
 } from "@hugeicons/core-free-icons"
 import {
   SignedIn,
@@ -40,6 +41,7 @@ const superAdminNavItems = [
   { title: "All Students", href: "/students", icon: StudentIcon },
   { title: "Teachers", href: "/teachers", icon: TeacherIcon },
   { title: "Classes", href: "/classes", icon: SchoolIcon },
+  { title: "Export", href: "/export", icon: Download04Icon },
   { title: "Add Student", href: "/students/new", icon: Add01Icon },
 ] as const
 
@@ -140,7 +142,7 @@ export function TopNav() {
                 <Skeleton className="h-8 w-20 rounded" />
               </>
             ) : (
-              navItems.slice(0, 4).map((item) => (
+              navItems.slice(0, 5).map((item) => (
                 <Link key={item.href} href={item.href}>
                   <Button
                     variant={isActive(item.href) ? "default" : "ghost"}
