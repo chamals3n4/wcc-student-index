@@ -94,7 +94,7 @@ export function ExportForm() {
               <Select
                 value={grade}
                 onValueChange={(value) => {
-                  setGrade(value)
+                  setGrade(value ?? "")
                   setSection("")
                   setStream("")
                 }}
@@ -121,7 +121,7 @@ export function ExportForm() {
                 <Select
                   value={stream}
                   onValueChange={(value) => {
-                    setStream(value)
+                    setStream(value ?? "")
                     setSection("")
                   }}
                 >
@@ -149,7 +149,7 @@ export function ExportForm() {
                 </Label>
                 <Select
                   value={section}
-                  onValueChange={(value) => setSection(value)}
+                  onValueChange={(value) => setSection(value ?? "")}
                 >
                   <SelectTrigger id="section" className="h-10 w-full">
                     <SelectValue placeholder="All Sections" />
