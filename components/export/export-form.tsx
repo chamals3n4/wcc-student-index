@@ -40,11 +40,10 @@ export function ExportForm() {
     ...Object.fromEntries(
       Array.from({ length: 11 }, (_, i) => [
         (i + 1).toString(),
-        ["A", "B", "C", "D"],
+        ["A", "B", "C", "D", "E"],
       ])
     ),
     "12": ["M1", "M2", "B1", "B2", "C1", "C2", "A1", "A2"],
-    "13": ["M1", "M2", "B1", "B2", "C1", "C2", "A1", "A2"],
   }
 
   const isSeniorGrade = grade === "12" || grade === "13"
