@@ -45,7 +45,11 @@ export async function GET(req: Request) {
 
     if (grade) conditions.push(eq(classes.grade, parseInt(grade)))
     if (section) conditions.push(eq(classes.section, section))
-    if (stream) conditions.push(eq(classes.stream, stream))
+    if (stream) {
+      conditions.push(
+        eq(classes.stream, stream as "Maths" | "Bio" | "Commerce" | "Art")
+      )
+    }
 
     // @ts-ignore — drizzle dynamic where
     const data = await query.where(and(...conditions))
