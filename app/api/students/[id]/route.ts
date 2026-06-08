@@ -25,6 +25,7 @@ export async function GET(
         contactNo: students.contactNo,
         guardianName: students.guardianName,
         siblingsAtSchool: students.siblingsAtSchool,
+        houseName: students.houseName,
         createdAt: students.createdAt,
         enrollmentId: enrollments.id,
         enrollmentStatus: enrollments.status,
@@ -82,7 +83,7 @@ export async function PUT(
     const accessibleClassIds = await getAccessibleClassIds()
     const body = await req.json()
     const validated = studentSchema.parse(body)
-    const { classId, ...studentData } = validated
+    const { classId, houseName, ...studentData } = validated
 
     // RBAC: teacher can only update students in their assigned classes
     // First, check the student's current class
@@ -116,7 +117,10 @@ export async function PUT(
     await db.transaction(async (tx) => {
       await tx
         .update(students)
-        .set(studentData)
+        .set({
+          ...studentData,
+          ...(houseName !== undefined && { houseName }),
+        })
         .where(eq(students.indexNumber, indexNumber))
 
       const [student] = await tx

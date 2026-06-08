@@ -21,6 +21,7 @@ import {
   FingerPrintIcon,
   SchoolIcon,
   Call02Icon,
+  Flag01Icon,
 } from "@hugeicons/core-free-icons"
 import { format } from "date-fns"
 import Link from "next/link"
@@ -203,6 +204,12 @@ export default function StudentDetailPage() {
                   icon: SchoolIcon,
                   label: "Class",
                   value: classLabel,
+                  badge: true,
+                },
+                {
+                  icon: Flag01Icon,
+                  label: "House",
+                  value: student.houseName || "—",
                   badge: true,
                 },
                 {

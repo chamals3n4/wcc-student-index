@@ -19,6 +19,7 @@ export interface EnrichedStudent extends Student {
   enrolledAt: string | null
   classId: string | null
   academicYear: string | null
+  houseName: "Vijaya" | "Gamunu" | "Parakum" | "Thissa" | null
   grade: number | null
   section: string | null
   stream: "Maths" | "Bio" | "Commerce" | "Art" | null
@@ -57,6 +58,7 @@ export interface Teacher {
 export type StudentFormData = Omit<Student, "id" | "createdAt" | "imageUrl"> & {
   imageUrl?: string
   classId: string
+  houseName?: "Vijaya" | "Gamunu" | "Parakum" | "Thissa"
 }
 
 export interface ApiResponse<T> {

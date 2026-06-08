@@ -48,6 +48,15 @@ interface StudentsTableProps {
 
 const PAGE_SIZES = [5, 10, 20, 50] as const
 
+const HOUSE_STYLES: Record<string, string> = {
+  Vijaya: "bg-red-100 text-red-800 border-red-200 hover:bg-red-100",
+  Gamunu: "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100",
+  Parakum:
+    "bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-100",
+  Thissa: "bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100",
+}
+const HOUSES = ["Vijaya", "Gamunu", "Parakum", "Thissa"] as const
+
 export function StudentsTable({
   students,
   loading,
@@ -58,6 +67,7 @@ export function StudentsTable({
 }: StudentsTableProps) {
   const [search, setSearch] = React.useState("")
   const [gradeFilter, setGradeFilter] = React.useState("all")
+  const [houseFilter, setHouseFilter] = React.useState("all")
   const [sortField, setSortField] =
     React.useState<keyof EnrichedStudent>("createdAt")
   const [sortDir, setSortDir] = React.useState<"asc" | "desc">("desc")
@@ -89,6 +99,10 @@ export function StudentsTable({
       result = result.filter((s) => s.grade === Number(gradeFilter))
     }
 
+    if (houseFilter !== "all") {
+      result = result.filter((s) => s.houseName === houseFilter)
+    }
+
     result.sort((a, b) => {
       const aVal = a[sortField] ?? ""
       const bVal = b[sortField] ?? ""
@@ -97,11 +111,11 @@ export function StudentsTable({
     })
 
     return result
-  }, [students, search, gradeFilter, sortField, sortDir])
+  }, [students, search, gradeFilter, houseFilter, sortField, sortDir])
 
   React.useEffect(() => {
     setPage(1)
-  }, [search, gradeFilter])
+  }, [search, gradeFilter, houseFilter])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize)
@@ -134,12 +148,13 @@ export function StudentsTable({
         <div className="flex items-center gap-3">
           <Skeleton className="h-10 w-64" />
           {showGradeFilter && <Skeleton className="h-10 w-36" />}
+          <Skeleton className="h-10 w-36" />
         </div>
         <div className="border">
           <Table>
             <TableHeader>
               <TableRow>
-                {[...Array(6)].map((_, i) => (
+                {[...Array(7)].map((_, i) => (
                   <TableHead key={i}>
                     <Skeleton className="h-4 w-20" />
                   </TableHead>
@@ -149,7 +164,7 @@ export function StudentsTable({
             <TableBody>
               {[...Array(5)].map((_, i) => (
                 <TableRow key={i}>
-                  {[...Array(6)].map((_, j) => (
+                  {[...Array(7)].map((_, j) => (
                     <TableCell key={j}>
                       <Skeleton className="h-5 w-full" />
                     </TableCell>
@@ -206,6 +221,30 @@ export function StudentsTable({
             </SelectContent>
           </Select>
         )}
+
+        <Select
+          value={houseFilter}
+          onValueChange={(value) => {
+            if (value !== null) setHouseFilter(value)
+          }}
+        >
+          <SelectTrigger className="h-10 w-40 text-sm">
+            <HugeiconsIcon
+              icon={FilterIcon}
+              strokeWidth={2}
+              className="size-4 text-muted-foreground"
+            />
+            <SelectValue placeholder="All Houses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Houses</SelectItem>
+            {HOUSES.map((h) => (
+              <SelectItem key={h} value={h}>
+                {h}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
@@ -233,6 +272,12 @@ export function StudentsTable({
                 Grade <SortIcon field="grade" />
               </TableHead>
               <TableHead className="text-sm font-medium">Contact</TableHead>
+              <TableHead
+                className="cursor-pointer text-sm font-medium select-none"
+                onClick={() => toggleSort("houseName")}
+              >
+                House <SortIcon field="houseName" />
+              </TableHead>
               <TableHead className="w-56 text-right text-sm font-medium">
                 Actions
               </TableHead>
@@ -241,7 +286,7 @@ export function StudentsTable({
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-40 text-center">
+                <TableCell colSpan={7} className="h-40 text-center">
                   <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground">
                     <HugeiconsIcon
                       icon={StudentIcon}
@@ -294,8 +339,21 @@ export function StudentsTable({
                       {student.grade != null ? `Grade ${student.grade}` : "—"}
                     </Badge>
                   </TableCell>
+
                   <TableCell className="font-mono text-sm">
                     {student.contactNo}
+                  </TableCell>
+                  <TableCell>
+                    {student.houseName ? (
+                      <Badge
+                        variant="outline"
+                        className={`text-xs ${HOUSE_STYLES[student.houseName] ?? ""}`}
+                      >
+                        {student.houseName}
+                      </Badge>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1.5">

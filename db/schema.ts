@@ -9,6 +9,13 @@ import {
   pgEnum,
 } from "drizzle-orm/pg-core"
 
+export const houseEnum = pgEnum("house", [
+  "Vijaya",
+  "Gamunu",
+  "Parakum",
+  "Thissa",
+])
+
 export const enrollmentStatusEnum = pgEnum("enrollment_status", [
   "active",
   "completed",
@@ -65,6 +72,7 @@ export const students = pgTable("students", {
   contactNo: varchar("contact_no", { length: 20 }).notNull(),
   guardianName: varchar("guardian_name", { length: 255 }),
   siblingsAtSchool: text("siblings_at_school"),
+  houseName: houseEnum("house_name"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 })
 

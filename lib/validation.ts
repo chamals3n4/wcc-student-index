@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { HOUSES } from "./house"
 
 export const studentSchema = z.object({
   name: z.string().min(1),
@@ -11,6 +12,7 @@ export const studentSchema = z.object({
   guardianName: z.string().optional(),
   siblingsAtSchool: z.string().optional(),
   classId: z.string().uuid("Invalid class"),
+  houseName: z.enum(HOUSES).optional(),
 })
 
 export const classSchema = z.object({

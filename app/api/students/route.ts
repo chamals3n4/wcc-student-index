@@ -4,12 +4,13 @@ import { students, enrollments, classes } from "@/db/schema"
 import { eq, and, inArray } from "drizzle-orm"
 import { studentSchema } from "@/lib/validation"
 import { getAccessibleClassIds, canAccessClass } from "@/lib/session"
+import { getHouseFromIndexNumber } from "@/lib/house"
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
     const validated = studentSchema.parse(body)
-    const { classId, ...studentData } = validated
+    const { classId, houseName, ...studentData } = validated
 
     // RBAC: teacher can only add students to their assigned classes
     const allowed = await canAccessClass(classId)
@@ -20,10 +21,16 @@ export async function POST(req: Request) {
       )
     }
 
+    const assignHouse =
+      houseName ?? getHouseFromIndexNumber(studentData.indexNumber)
+
     const result = await db.transaction(async (tx) => {
       const [student] = await tx
         .insert(students)
-        .values(studentData)
+        .values({
+          ...studentData,
+          house: assignHouse,
+        })
         .returning()
 
       await tx.insert(enrollments).values({
@@ -67,6 +74,7 @@ export async function GET() {
         contactNo: students.contactNo,
         guardianName: students.guardianName,
         siblingsAtSchool: students.siblingsAtSchool,
+        houseName: students.houseName,
         createdAt: students.createdAt,
         enrollmentId: enrollments.id,
         enrollmentStatus: enrollments.status,

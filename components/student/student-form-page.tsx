@@ -35,6 +35,7 @@ interface StudentWithClass {
   guardianName?: string | null
   siblingsAtSchool?: string | null
   classId: string | null
+  houseName?: "Vijaya" | "Gamunu" | "Parakum" | "Thissa" | null
 }
 
 interface StudentFormPageProps {
@@ -55,6 +56,8 @@ const INITIAL_FORM: StudentFormData = {
   guardianName: "",
   siblingsAtSchool: "",
 }
+
+const HOUSES = ["Vijaya", "Gamunu", "Parakum", "Thissa"] as const
 
 function classLabel(c: Class): string {
   const base = `Grade ${c.grade} - ${c.section}`
@@ -78,7 +81,6 @@ export function StudentFormPage({
   const [uploading, setUploading] = React.useState(false)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
 
-  // Populate form when editing an existing student
   React.useEffect(() => {
     if (student) {
       setForm({
@@ -92,6 +94,7 @@ export function StudentFormPage({
         guardianName: student.guardianName ?? "",
         siblingsAtSchool: student.siblingsAtSchool ?? "",
         imageUrl: student.imageUrl ?? undefined,
+        houseName: student.houseName ?? undefined,
       })
       if (student.imageUrl) {
         setImagePreview(student.imageUrl)
@@ -191,6 +194,7 @@ export function StudentFormPage({
 
   const isBusy = submitting || uploading
   const isClassLocked = classOptions.length === 1
+  const isEditing = !!student
 
   // Compute selected class label explicitly to avoid UUID showing
   const selectedClassLabel = React.useMemo(() => {
@@ -387,6 +391,34 @@ export function StudentFormPage({
                   className="h-10"
                 />
               </div>
+
+              {isEditing && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="houseName" className="text-sm">
+                    House
+                  </Label>
+                  <Select
+                    value={form.houseName ?? ""}
+                    onValueChange={(value) =>
+                      handleSelectChange("houseName", value)
+                    }
+                  >
+                    <SelectTrigger id="houseName" className="h-10 w-full">
+                      <SelectValue placeholder="Select house" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {HOUSES.map((h) => (
+                        <SelectItem key={h} value={h}>
+                          {h}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Auto-assigned from index number. Change if needed.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Textareas */}
