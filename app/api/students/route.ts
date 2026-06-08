@@ -29,7 +29,7 @@ export async function POST(req: Request) {
         .insert(students)
         .values({
           ...studentData,
-          house: assignHouse,
+          houseName: assignHouse,
         })
         .returning()
 
