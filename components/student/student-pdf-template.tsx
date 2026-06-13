@@ -6,24 +6,24 @@ interface StudentPDFTemplateProps {
   student: {
     name: string
     indexNumber: string
-    birthDay?: string
+    birthDay?: string | null
     grade?: string | number | null
-    section?: string
-    stream?: string
-    houseName?: string
-    contactNo?: string
-    guardianName?: string
-    address?: string
-    specialRemarks?: string
-    siblingsAtSchool?: string
-    enrollmentStatus?: string
-    academicYear?: string
-    createdAt?: string
-    imageUrl?: string
+    section?: string | null
+    stream?: string | null
+    houseName?: string | null
+    contactNo?: string | null
+    guardianName?: string | null
+    address?: string | null
+    specialRemarks?: string | null
+    siblingsAtSchool?: string | null
+    enrollmentStatus?: string | null
+    academicYear?: string | null
+    createdAt?: string | null
+    imageUrl?: string | null
   }
 }
 
-function fmtDate(d?: string) {
+function fmtDate(d?: string | null) {
   if (!d) return "—"
   return new Date(d).toLocaleDateString("en-US", {
     year: "numeric",
@@ -32,7 +32,7 @@ function fmtDate(d?: string) {
   })
 }
 
-function fmtDateTime(d?: string) {
+function fmtDateTime(d?: string | null) {
   if (!d) return "—"
   return new Date(d).toLocaleString("en-US", {
     year: "numeric",
