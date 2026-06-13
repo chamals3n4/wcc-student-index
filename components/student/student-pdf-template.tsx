@@ -7,7 +7,7 @@ interface StudentPDFTemplateProps {
     name: string
     indexNumber: string
     birthDay?: string
-    grade?: string
+    grade?: string | number | null
     section?: string
     stream?: string
     houseName?: string
