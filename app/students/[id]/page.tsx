@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Spinner } from "@/components/ui/spinner"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   ArrowLeft01Icon,
@@ -22,9 +23,21 @@ import {
   SchoolIcon,
   Call02Icon,
   Flag01Icon,
+  Download04Icon,
 } from "@hugeicons/core-free-icons"
 import { format } from "date-fns"
 import Link from "next/link"
+import dynamic from "next/dynamic"
+
+const StudentPDFTemplate = dynamic(
+  () =>
+    import("@/components/student/student-pdf-template").then(
+      (m) => m.StudentPDFTemplate
+    ),
+  { ssr: false }
+)
+
+import { useDownloadPDF } from "@/hooks/use-download-pdf"
 
 export default function StudentDetailPage() {
   const params = useParams()
@@ -33,6 +46,8 @@ export default function StudentDetailPage() {
   const { data: student, isLoading } = useStudentQuery(indexNumber)
   const deleteMutation = useDeleteStudent()
   const [deleteOpen, setDeleteOpen] = React.useState(false)
+  const { download, downloading } = useDownloadPDF()
+  const pdfRef = React.useRef<HTMLDivElement>(null)
 
   const initials = React.useMemo(() => {
     if (!student?.name) return ""
@@ -68,6 +83,15 @@ export default function StudentDetailPage() {
     const base = `Grade ${student.grade} - ${student.section}`
     return student.stream ? `${base} (${student.stream})` : base
   }, [student])
+
+  const handleDownloadPDF = async () => {
+    if (!pdfRef.current || !student) return
+    try {
+      await download(pdfRef.current, `${student.indexNumber}.pdf`)
+    } catch {
+      alert("Failed to generate PDF. Please try again.")
+    }
+  }
 
   if (isLoading) {
     return (
@@ -107,6 +131,8 @@ export default function StudentDetailPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <StudentPDFTemplate ref={pdfRef} student={student} />
+
       {/* Top bar */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={() => router.back()}>
@@ -114,6 +140,20 @@ export default function StudentDetailPage() {
           Back
         </Button>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownloadPDF}
+            disabled={downloading}
+          >
+            {downloading ? (
+              <Spinner />
+            ) : (
+              <HugeiconsIcon icon={Download04Icon} strokeWidth={2} />
+            )}
+            {downloading ? "Generating..." : "Download Profile"}
+          </Button>
+
           <Link href={`/students/${indexNumber}/edit`}>
             <Button variant="outline" size="sm">
               <HugeiconsIcon icon={PencilEdit01Icon} strokeWidth={2} />

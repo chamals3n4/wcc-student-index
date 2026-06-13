@@ -26,8 +26,8 @@ const fontMono = Geist_Mono({
   variable: "--font-mono",
 })
 export const metadata = {
-  title: "WCC Student Information",
-  description: "Student management system",
+  title: "WCC Student Information System",
+  description: "Student management system for wellawa central college",
 }
 
 export default function RootLayout({

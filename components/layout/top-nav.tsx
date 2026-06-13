@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
@@ -72,24 +73,47 @@ export function TopNav() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
-      <div className="flex h-14 items-center gap-3 px-4 lg:px-6">
-        {/* Logo */}
+      {/* Increased header height to fit larger logo */}
+      <div className="flex h-[4.5rem] items-center gap-4 px-4 lg:px-6">
+        {/* Desktop Logo - BIGGER */}
         <Link
           href="/"
-          className="hidden shrink-0 flex-col leading-tight sm:flex lg:min-w-0"
+          className="hidden shrink-0 items-center gap-3 sm:flex lg:min-w-0"
         >
-          <span className="truncate font-heading text-base font-semibold">
-            Student Information Platform
-          </span>
-          <span className="truncate text-xs text-muted-foreground">
-            Wellawa Central College
-          </span>
+          <Image
+            src="/images/wcc-logo.png"
+            alt="Wellawa Central College Logo"
+            width={60}
+            height={60}
+            className="size-[3.75rem] rounded object-contain"
+            priority
+          />
+          <div className="flex flex-col leading-tight">
+            <span className="truncate font-heading text-base font-semibold">
+              Student Information Platform
+            </span>
+            <span className="truncate text-xs text-muted-foreground">
+              Wellawa Central College
+            </span>
+          </div>
+        </Link>
+
+        {/* Mobile Logo - BIGGER */}
+        <Link href="/" className="flex shrink-0 items-center sm:hidden">
+          <Image
+            src="/images/wcc-logo.png"
+            alt="Wellawa Central College Logo"
+            width={52}
+            height={52}
+            className="size-[3.25rem] rounded object-contain"
+            priority
+          />
         </Link>
 
         {/* Mobile Menu Button */}
         <SignedIn>
           <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger>
+            <SheetTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
