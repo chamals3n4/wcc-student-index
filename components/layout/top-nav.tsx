@@ -30,7 +30,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { useSession } from "@/hooks/use-session"
@@ -113,19 +112,18 @@ export function TopNav() {
         {/* Mobile Menu Button */}
         <SignedIn>
           <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="shrink-0 sm:hidden"
-              >
-                <HugeiconsIcon
-                  icon={Menu01Icon}
-                  strokeWidth={2}
-                  className="size-4"
-                />
-              </Button>
-            </SheetTrigger>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="shrink-0 sm:hidden"
+              onClick={() => setOpen(true)}
+            >
+              <HugeiconsIcon
+                icon={Menu01Icon}
+                strokeWidth={2}
+                className="size-4"
+              />
+            </Button>
             <SheetContent side="left" className="w-64">
               <SheetHeader className="mb-4">
                 <SheetTitle>Menu</SheetTitle>
